@@ -8,34 +8,53 @@ import pickle, json, os
 from sklearn.preprocessing import LabelEncoder
 
 app = Flask(__name__)
-BASE = os.path.dirname(__file__)
+BASE = os.path.dirname(os.path.abspath(__file__))
 
-# Load model & summary
-with open(os.path.join(BASE, 'models/best_model.pkl'), 'rb') as f:
-    pkg = pickle.load(f)
-model    = pkg['model']
-encoders = pkg['encoders']
-features = pkg['features']
-model_name = pkg['model_name']
+# ── LAZY RESOURCE LOADING ────────────────────────────────────────────────────
+# Load on first request instead of at import time — avoids cold-start crashes
+# on Vercel serverless where file paths may not resolve at module load time.
+_resources = {}
 
-with open(os.path.join(BASE, 'models/summary.json')) as f:
-    summary = json.load(f)
+def get_resources():
+    if _resources:
+        return _resources
+    with open(os.path.join(BASE, 'models', 'best_model.pkl'), 'rb') as f:
+        pkg = pickle.load(f)
+    _resources['model']      = pkg['model']
+    _resources['encoders']   = pkg['encoders']
+    _resources['features']   = pkg['features']
+    _resources['model_name'] = pkg['model_name']
 
-df_raw = pd.read_csv(os.path.join(BASE, 'data/commodity_prices.csv'))
-df_raw.columns = [c.replace('_x0020_', '_') for c in df_raw.columns]
+    with open(os.path.join(BASE, 'models', 'summary.json')) as f:
+        _resources['summary'] = json.load(f)
+
+    df = pd.read_csv(os.path.join(BASE, 'data', 'commodity_prices.csv'))
+    df.columns = [c.replace('_x0020_', '_') for c in df.columns]
+    _resources['df_raw'] = df
+    return _resources
 
 # ── ROUTES ──────────────────────────────────────────────────────────────────
 
 @app.route('/')
 def index():
-    return render_template('index.html', summary=summary)
+    r = get_resources()
+    return render_template('index.html', summary=r['summary'])
 
 @app.route('/charts')
 def charts():
-    return render_template('charts.html', summary=summary)
+    r = get_resources()
+    return render_template('charts.html', summary=r['summary'])
 
 @app.route('/predict', methods=['GET', 'POST'])
 def predict():
+    r = get_resources()
+    df_raw     = r['df_raw']
+    encoders   = r['encoders']
+    features   = r['features']
+    model      = r['model']
+    model_name = r['model_name']
+    summary    = r['summary']
+
     commodities = sorted(df_raw['Commodity'].unique().tolist())
     states      = sorted(df_raw['State'].unique().tolist())
     grades      = sorted(df_raw['Grade'].unique().tolist())
@@ -85,10 +104,17 @@ def predict():
 
 @app.route('/stats')
 def statistics():
-    return render_template('stats.html', summary=summary)
+    r = get_resources()
+    return render_template('stats.html', summary=r['summary'])
 
 @app.route('/api/predict', methods=['POST'])
 def api_predict():
+    r = get_resources()
+    df_raw     = r['df_raw']
+    encoders   = r['encoders']
+    features   = r['features']
+    model      = r['model']
+    model_name = r['model_name']
     data = request.get_json() or {}
     try:
         row = {}
@@ -115,6 +141,12 @@ def api_predict():
 
 @app.route('/api/compare', methods=['POST'])
 def api_compare():
+    r = get_resources()
+    df_raw     = r['df_raw']
+    encoders   = r['encoders']
+    features   = r['features']
+    model      = r['model']
+    model_name = r['model_name']
     data = request.get_json() or {}
     selected_commodities = data.get('commodities', ['Wheat', 'Onion', 'Tomato', 'Potato', 'Apple'])
     if not isinstance(selected_commodities, list) or len(selected_commodities) == 0:
@@ -174,7 +206,8 @@ def api_compare():
 
 @app.route('/api/summary')
 def api_summary():
-    return jsonify(summary)
+    r = get_resources()
+    return jsonify(r['summary'])
 
 if __name__ == '__main__':
     import socket
