@@ -71,7 +71,7 @@ print(f"\n📊 Train size: {len(X_train)} | Test size: {len(X_test)}")
 models = {
     'Linear Regression': LinearRegression(),
     'Ridge Regression':  Ridge(alpha=1.0),
-    'Random Forest':     RandomForestRegressor(n_estimators=100, random_state=42, n_jobs=-1),
+    'Random Forest':     RandomForestRegressor(n_estimators=30, max_depth=12, random_state=42, n_jobs=-1),
     'Gradient Boosting': GradientBoostingRegressor(n_estimators=100, random_state=42),
 }
 
