@@ -5,7 +5,6 @@ from flask import Flask, render_template, request, jsonify
 import pandas as pd
 import numpy as np
 import pickle, json, os
-from scipy import stats
 from sklearn.preprocessing import LabelEncoder
 
 app = Flask(__name__)
