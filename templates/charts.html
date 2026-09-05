@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}Analytics{% endblock %}
+{% block content %}
+<div class="container py-5">
+  <div class="mb-5">
+    <h2 class="section-title">Data Visualizations & Heatmap Analytics</h2>
+    <p class="text-muted">High-resolution exploratory data charts, full feature correlation matrix (-1.0 to +1.0), and state price heatmaps.</p>
+  </div>
+
+  <!-- SECTION 1: Model Diagnostics -->
+  <div class="mb-5">
+    <h4 class="fw-bold text-white mb-4 border-bottom border-secondary pb-2"><span class="me-2">🤖</span>1. Model Architecture & Diagnostics</h4>
+    <div class="row g-4">
+      <!-- Model Comparison 3-in-1 -->
+      <div class="col-12">
+        <div class="card card-hover border-0 shadow">
+          <div class="card-header border-0 bg-transparent pb-0 pt-4 px-4"><h5 class="mb-0 fw-bold text-white"><span class="me-2">📊</span>Model Performance Comparison (MAE, RMSE, R²)</h5></div>
+          <div class="card-body p-4 text-center"><img src="/static/charts/model_comparison.png" class="chart-img shadow"></div>
+        </div>
+      </div>
+      
+      <!-- Actual vs Predicted -->
+      <div class="col-md-6">
+        <div class="card h-100 card-hover border-0 shadow">
+          <div class="card-header border-0 bg-transparent pb-0 pt-4 px-4"><h5 class="mb-0 fw-bold text-white"><span class="me-2">🎯</span>Actual vs Predicted — <span class="text-info">{{ summary.best_model }}</span></h5></div>
+          <div class="card-body p-4 text-center"><img src="/static/charts/actual_vs_predicted.png" class="chart-img shadow"></div>
+        </div>
+      </div>
+
+      <!-- Feature Importance -->
+      <div class="col-md-6">
+        <div class="card h-100 card-hover border-0 shadow">
+          <div class="card-header border-0 bg-transparent pb-0 pt-4 px-4"><h5 class="mb-0 fw-bold text-white"><span class="me-2">🔑</span>Feature Importance</h5></div>
+          <div class="card-body p-4 text-center"><img src="/static/charts/feature_importance.png" class="chart-img shadow"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 2: Heatmaps & Correlation Matrix -->
+  <div class="mb-5">
+    <h4 class="fw-bold text-white mb-4 border-bottom border-secondary pb-2"><span class="me-2">🔥</span>2. Correlation Matrix & State Heatmap Analytics</h4>
+    <div class="row g-4">
+      <!-- Full Feature Correlation Heatmap (-1 to +1) -->
+      <div class="col-lg-6">
+        <div class="card h-100 card-hover border-0 shadow">
+          <div class="card-header border-0 bg-transparent pb-0 pt-4 px-4">
+            <h5 class="mb-1 fw-bold text-white"><span class="me-2">🔥</span>Feature Correlation Matrix Heatmap</h5>
+            <p class="text-muted small mb-0">Correlations across State, District, Market, Commodity, Prices (-1.0 to +1.0)</p>
+          </div>
+          <div class="card-body p-4 text-center"><img src="/static/charts/heatmap.png" class="chart-img shadow"></div>
+        </div>
+      </div>
+      
+      <!-- State x Commodity Heatmap -->
+      <div class="col-lg-6">
+        <div class="card h-100 card-hover border-0 shadow">
+          <div class="card-header border-0 bg-transparent pb-0 pt-4 px-4">
+            <h5 class="mb-1 fw-bold text-white"><span class="me-2">🗺️</span>State × Commodity Avg Price Heatmap (₹)</h5>
+            <p class="text-muted small mb-0">Average modal price matrix across top states and commodities</p>
+          </div>
+          <div class="card-body p-4 text-center"><img src="/static/charts/state_month_heatmap.png" class="chart-img shadow"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 3: Market & Trend Analytics -->
+  <div>
+    <h4 class="fw-bold text-white mb-4 border-bottom border-secondary pb-2"><span class="me-2">📈</span>3. Commodity Trends & Price Distribution</h4>
+    <div class="row g-4">
+      <div class="col-md-6">
+        <div class="card h-100 card-hover border-0 shadow">
+          <div class="card-header border-0 bg-transparent pb-0 pt-4 px-4"><h5 class="mb-0 fw-bold text-white"><span class="me-2">🌾</span>Top 12 Commodities by Avg Modal Price</h5></div>
+          <div class="card-body p-4 text-center"><img src="/static/charts/top_commodities.png" class="chart-img shadow"></div>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="card h-100 card-hover border-0 shadow">
+          <div class="card-header border-0 bg-transparent pb-0 pt-4 px-4"><h5 class="mb-0 fw-bold text-white"><span class="me-2">🎻</span>Price Distribution (Violin Plot)</h5></div>
+          <div class="card-body p-4 text-center"><img src="/static/charts/price_distribution.png" class="chart-img shadow"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

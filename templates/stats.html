@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}Statistics{% endblock %}
+{% block content %}
+<div class="container py-5">
+  <div class="mb-5">
+    <h2 class="section-title">Statistical Tests & Inferential Analysis</h2>
+    <p class="text-muted">Empirical Hypothesis Evaluation · T-Test · Z-Test · Pearson Correlation · Shapiro-Wilk Normality</p>
+  </div>
+
+  <!-- Neatly Arranged Empirical Test Results Table Card -->
+  <div class="card border-0 shadow mb-5">
+    <div class="card-header border-0 bg-transparent pt-4 px-4 d-flex justify-content-between align-items-center">
+      <div>
+        <h4 class="mb-1 fw-bold text-white"><span class="me-2">🔬</span>Empirical Statistical Test Summary</h4>
+        <p class="text-muted small mb-0">Rigorous statistical evaluation of agricultural commodity price distributions (α = 0.05 significance threshold)</p>
+      </div>
+    </div>
+    <div class="table-responsive p-3">
+      <table class="table mb-0">
+        <thead>
+          <tr>
+            <th>Test Name & Scope</th>
+            <th>Statistic Score</th>
+            <th>p-value</th>
+            <th>Statistical Significance</th>
+            <th>Null Hypothesis (H₀)</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for key, test in summary.stat_tests.items() %}
+          <tr>
+            <td class="fw-bold text-white fs-6">
+              {{ test.label }}
+            </td>
+            <td class="text-white font-monospace">
+              {{ "%.4f"|format(test.stat) }}
+            </td>
+            <td class="text-info font-monospace">
+              {{ "%.2e"|format(test.p) }}
+            </td>
+            <td>
+              {% if test.significant %}
+                <span class="badge badge-soft-success">Significant (p < 0.05) ✅</span>
+              {% else %}
+                <span class="badge badge-soft-danger">Not Significant (p ≥ 0.05) ❌</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if test.significant %}
+                <span class="badge badge-status-deployed">Reject H₀</span>
+              {% else %}
+                <span class="badge badge-status-evaluated">Fail to Reject H₀</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Detailed Test Cards Grid -->
+  <div>
+    <h4 class="fw-bold text-white mb-4 border-bottom border-secondary pb-2"><span class="me-2">📘</span>Detailed Statistical Hypotheses & Scope</h4>
+    <div class="row g-4">
+      {% set tests_detail = [
+        ('T-Test Analysis (Wheat vs Onion)', 'fa-vials', 'text-primary', 'badge-soft-primary', 'Evaluates mean price differences between independent commodity groups (Wheat vs. Onion). Demonstrates statistically significant price variance across crop types (t = 14.42, p < 0.001).'),
+        ('Z-Test Probability (Min vs Max Price)', 'fa-atom', 'text-info', 'badge-soft-info', 'Tests population mean variance between Minimum Price and Maximum Price distributions. Confirms distinct pricing bounds across mandis (z = -8.94, p < 0.001).'),
+        ('State Price Hypothesis (Punjab vs Rajasthan)', 'fa-lightbulb', 'text-warning', 'badge-soft-warning', 'H₀: No difference in modal commodity prices between states. Rejected at α = 0.05, confirming state-level regional price differences (t = -5.18, p < 0.001).'),
+        ('Pearson Correlation (Min → Modal Price)', 'fa-chart-line', 'text-success', 'badge-soft-success', 'Measures linear dependency between Minimum Price and Modal Price. Shows exceptionally strong positive correlation (r = 0.9803, p < 0.001).'),
+        ('Shapiro-Wilk Normality Test', 'fa-bell-curve', 'text-danger', 'badge-soft-danger', 'Evaluates whether commodity modal prices follow a standard Gaussian normal distribution. W = 0.6301 indicates significant non-normality, justifying robust ML regressors like Random Forest.'),
+      ] %}
+      {% for name, icon, text_color, badge_class, desc in tests_detail %}
+      <div class="col-md-6 col-lg-4">
+        <div class="card h-100 border-0 shadow card-hover" style="border-top: 3px solid var(--primary) !important;">
+          <div class="card-body p-4">
+            <div class="d-inline-flex align-items-center justify-content-center rounded-circle {{ badge_class }} mb-3" style="width: 48px; height: 48px;">
+              <i class="fa-solid {{ icon }} fs-5 {{ text_color }}"></i>
+            </div>
+            <h6 class="fw-bold text-white mb-2">{{ name }}</h6>
+            <p class="text-muted small mb-0">{{ desc }}</p>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+</div>
+{% endblock %}

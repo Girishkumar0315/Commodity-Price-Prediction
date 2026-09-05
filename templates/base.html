@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}Commodity Prediction{% endblock %} — Dashboard</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-color: #0f111a;
+    --card-bg: #161b26;
+    --border-color: #232a3b;
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+    --primary: #6366f1;
+    --primary-hover: #4f46e5;
+    --success: #10b981;
+    --danger: #ef4444;
+    --warning: #f59e0b;
+    --info: #38bdf8;
+    --input-bg: #1e293b;
+    --input-border: #334155;
+  }
+
+  body {
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Navbar */
+  .navbar {
+    background-color: var(--card-bg);
+    border-bottom: 1px solid var(--border-color);
+    padding: 0.85rem 0;
+  }
+  .navbar-brand {
+    font-weight: 700;
+    color: var(--text-main) !important;
+    font-size: 1.25rem;
+    letter-spacing: -0.5px;
+  }
+  .nav-link {
+    color: var(--text-muted) !important;
+    font-weight: 500;
+    font-size: 0.95rem;
+    padding: 0.5rem 1rem !important;
+    border-radius: 6px;
+    transition: all 0.2s;
+  }
+  .nav-link:hover {
+    color: var(--text-main) !important;
+    background-color: var(--input-bg);
+  }
+  .nav-link.active {
+    color: #ffffff !important;
+    background-color: rgba(99, 102, 241, 0.2);
+    border: 1px solid rgba(99, 102, 241, 0.4);
+    font-weight: 600;
+  }
+
+  /* Cards */
+  .card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+    transition: transform 0.2s, box-shadow 0.2s;
+    overflow: hidden;
+  }
+  .card-hover:hover {
+    transform: translateY(-2px);
+    border-color: #334155;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+  }
+  .card-header {
+    background-color: var(--card-bg);
+    border-bottom: 1px solid var(--border-color);
+    padding: 1.25rem 1.5rem;
+    font-weight: 600;
+    color: var(--text-main);
+  }
+
+  /* Stat Cards */
+  .stat-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  }
+  .stat-number {
+    font-size: 2.25rem;
+    font-weight: 700;
+    color: var(--text-main);
+    line-height: 1.2;
+    letter-spacing: -1px;
+    margin: 0.5rem 0;
+  }
+
+  /* Buttons */
+  .btn {
+    font-weight: 500;
+    border-radius: 8px;
+    padding: 0.6rem 1.2rem;
+    transition: all 0.2s;
+  }
+  .btn-primary {
+    background-color: var(--primary);
+    border-color: var(--primary);
+    color: #ffffff;
+  }
+  .btn-primary:hover {
+    background-color: var(--primary-hover);
+    border-color: var(--primary-hover);
+    transform: translateY(-1px);
+    color: #ffffff;
+  }
+  .btn-outline-secondary {
+    color: var(--text-main);
+    border-color: var(--input-border);
+    background-color: var(--input-bg);
+  }
+  .btn-outline-secondary:hover {
+    background-color: #334155;
+    color: #ffffff;
+  }
+
+  /* Forms */
+  .form-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+    letter-spacing: 0.5px;
+  }
+  .form-control, .form-select {
+    border: 1px solid var(--input-border);
+    border-radius: 8px;
+    padding: 0.6rem 1rem;
+    font-size: 0.95rem;
+    color: var(--text-main);
+    background-color: var(--input-bg);
+  }
+  .form-control:focus, .form-select:focus {
+    background-color: var(--input-bg);
+    color: var(--text-main);
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
+  }
+
+  /* Typography */
+  .section-title {
+    font-size: 1.875rem;
+    font-weight: 700;
+    color: var(--text-main);
+    letter-spacing: -0.5px;
+    margin-bottom: 0.5rem;
+  }
+  .text-muted { color: var(--text-muted) !important; }
+
+  /* Custom Status Badges from Screenshots */
+  .badge-status-evaluated {
+    background-color: #1e293b;
+    color: #60a5fa;
+    border: 1px solid #334155;
+    padding: 0.35rem 0.85rem;
+    border-radius: 9999px;
+    font-weight: 500;
+    font-size: 0.8rem;
+  }
+  .badge-status-deployed {
+    background-color: #064e3b;
+    color: #34d399;
+    border: 1px solid #047857;
+    padding: 0.35rem 0.85rem;
+    border-radius: 9999px;
+    font-weight: 500;
+    font-size: 0.8rem;
+  }
+  .badge-best {
+    background-color: #064e3b;
+    color: #34d399;
+    border: 1px solid #047857;
+    padding: 0.2rem 0.55rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+
+  .badge-soft-primary { background-color: rgba(99, 102, 241, 0.2); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.3); }
+  .badge-soft-success { background-color: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+  .badge-soft-danger  { background-color: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+  .badge-soft-warning { background-color: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
+
+  /* Tables */
+  .table {
+    margin-bottom: 0;
+    color: var(--text-main);
+    border-color: var(--border-color);
+  }
+  .table th {
+    background-color: #1e293b;
+    color: var(--text-muted);
+    font-weight: 600;
+    font-size: 0.8rem;
+    letter-spacing: 0.05em;
+    padding: 0.9rem 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+  }
+  .table td {
+    padding: 1.1rem 1.5rem;
+    vertical-align: middle;
+    border-bottom: 1px solid var(--border-color);
+    background-color: var(--card-bg);
+    color: var(--text-main);
+  }
+  .table tbody tr:hover td {
+    background-color: #1e293b;
+  }
+
+  /* Utility */
+  img.chart-img {
+    border-radius: 10px;
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+  }
+
+  /* Footer */
+  footer {
+    margin-top: auto;
+    padding: 2rem 0;
+    background-color: var(--card-bg);
+    border-top: 1px solid var(--border-color);
+  }
+</style>
+{% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg sticky-top">
+  <div class="container">
+    <a class="navbar-brand" href="/">Commodity Prediction</a>
+    <button class="navbar-toggler text-white border-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#nav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="nav">
+      <ul class="navbar-nav ms-auto gap-1">
+        <li class="nav-item"><a class="nav-link {% if request.path == '/' %}active{% endif %}" href="/">Overview</a></li>
+        <li class="nav-item"><a class="nav-link {% if request.path == '/predict' %}active{% endif %}" href="/predict">Predict</a></li>
+        <li class="nav-item"><a class="nav-link {% if request.path == '/charts' %}active{% endif %}" href="/charts">Analytics</a></li>
+        <li class="nav-item"><a class="nav-link {% if request.path == '/stats' %}active{% endif %}" href="/stats">Statistics</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<main class="flex-grow-1">
+  {% block content %}{% endblock %}
+</main>
+
+<footer class="text-center">
+  <div class="container">
+    <p class="text-muted small mb-0">Commodity Price Prediction Dashboard &copy; 2026. Dark Theme.</p>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

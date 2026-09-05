@@ -1,0 +1,427 @@
+{% extends "base.html" %}
+{% block title %}Predict Price{% endblock %}
+{% block content %}
+<div class="container py-5">
+  <div class="mb-5">
+    <h2 class="section-title">Prediction Engine & Commodity Comparison</h2>
+    <p class="text-muted">Generate commodity price estimates and compare multiple commodities side-by-side using <span class="badge badge-status-deployed ms-1">{{ model_name }}</span></p>
+  </div>
+
+  <div class="row g-4 mb-5">
+    <!-- Form Section -->
+    <div class="col-lg-7">
+      <div class="card h-100">
+        <div class="card-header border-0 pb-0 pt-4 px-4">
+          <h5 class="mb-0 fw-bold text-white"><span class="me-2">🎛️</span>Input Parameters</h5>
+        </div>
+        <div class="card-body p-4">
+          <form method="POST" id="predictForm">
+            <div class="row g-4">
+              <div class="col-md-6">
+                <label class="form-label">STATE</label>
+                <select class="form-select" name="State" id="inputState">
+                  {% for s in states %}<option value="{{ s }}" {% if form_data.get('State') == s %}selected{% endif %}>{{ s }}</option>{% endfor %}
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">PRIMARY COMMODITY</label>
+                <select class="form-select" name="Commodity" id="inputCommodity">
+                  {% for c in commodities %}<option value="{{ c }}" {% if form_data.get('Commodity') == c %}selected{% endif %}>{{ c }}</option>{% endfor %}
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">DISTRICT</label>
+                <select class="form-select" name="District">
+                  {% for d in districts %}<option value="{{ d }}" {% if form_data.get('District') == d %}selected{% endif %}>{{ d }}</option>{% endfor %}
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">MARKET</label>
+                <select class="form-select" name="Market">
+                  {% for m in markets %}<option value="{{ m }}" {% if form_data.get('Market') == m %}selected{% endif %}>{{ m }}</option>{% endfor %}
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">VARIETY</label>
+                <select class="form-select" name="Variety">
+                  {% for v in varieties %}<option value="{{ v }}" {% if form_data.get('Variety') == v %}selected{% endif %}>{{ v }}</option>{% endfor %}
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">GRADE</label>
+                <select class="form-select" name="Grade">
+                  {% for g in grades %}<option value="{{ g }}" {% if form_data.get('Grade') == g %}selected{% endif %}>{{ g }}</option>{% endfor %}
+                </select>
+              </div>
+              
+              <div class="col-md-6">
+                <label class="form-label">MIN PRICE (₹)</label>
+                <div class="input-group">
+                  <span class="input-group-text bg-dark text-muted border-end-0 border-secondary">₹</span>
+                  <input type="number" class="form-control border-start-0 ps-0" name="Min_Price" id="inputMinPrice" value="{{ form_data.get('Min_Price', 1500) }}" min="1" required>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">MAX PRICE (₹)</label>
+                <div class="input-group">
+                  <span class="input-group-text bg-dark text-muted border-end-0 border-secondary">₹</span>
+                  <input type="number" class="form-control border-start-0 ps-0" name="Max_Price" id="inputMaxPrice" value="{{ form_data.get('Max_Price', 3000) }}" min="1" required>
+                </div>
+              </div>
+              
+              <div class="col-md-4">
+                <label class="form-label">MONTH</label>
+                <select class="form-select" name="Month" id="inputMonth">
+                  {% for i, m in [(1,'Jan'),(2,'Feb'),(3,'Mar'),(4,'Apr'),(5,'May'),(6,'Jun'),(7,'Jul'),(8,'Aug'),(9,'Sep'),(10,'Oct'),(11,'Nov'),(12,'Dec')] %}
+                  <option value="{{ i }}" {% if form_data.get('Month', '6')|int == i %}selected{% endif %}>{{ m }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">YEAR</label>
+                <input type="number" class="form-control" name="Year" id="inputYear" value="{{ form_data.get('Year', 2024) }}" min="2015" max="2030">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">DAY OF WEEK</label>
+                <select class="form-select" name="DayOfWeek" id="inputDayOfWeek">
+                  {% for i, d in [(0,'Mon'),(1,'Tue'),(2,'Wed'),(3,'Thu'),(4,'Fri'),(5,'Sat'),(6,'Sun')] %}
+                  <option value="{{ i }}" {% if form_data.get('DayOfWeek', '1')|int == i %}selected{% endif %}>{{ d }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+            
+            <div class="mt-4 pt-2">
+              <button type="submit" class="btn btn-primary w-100 py-3 d-flex justify-content-center align-items-center gap-2 fw-semibold">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> Generate Single Prediction
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Results Section -->
+    <div class="col-lg-5">
+      <!-- Result Card -->
+      <div class="card mb-4 position-relative overflow-hidden">
+        <div class="card-header border-0 pb-0 pt-4 px-4">
+          <h5 class="mb-0 fw-bold text-white"><span class="me-2">🎯</span>Inference Result</h5>
+        </div>
+        <div class="card-body text-center py-5">
+          {% if prediction %}
+            <div class="mb-3">
+              <span class="badge badge-status-deployed">
+                <i class="fa-solid fa-check-circle me-1"></i> Prediction Successful
+              </span>
+            </div>
+            <p class="text-muted mb-1 text-uppercase fw-semibold" style="font-size: 0.8rem; letter-spacing: 0.5px;">Predicted Modal Price</p>
+            <div class="display-4 fw-bold text-success my-3">₹{{ "{:,.2f}".format(prediction) }}</div>
+            <p class="text-muted mt-2 fw-medium">per quintal (100 kg)</p>
+            
+            <div class="mt-4 p-3 rounded bg-dark border border-secondary">
+              <div class="row text-center align-items-center">
+                <div class="col">
+                  <div class="text-muted mb-1" style="font-size: 0.75rem;">Min Entered</div>
+                  <div class="fw-bold text-white">₹{{ form_data.get('Min_Price', '-') }}</div>
+                </div>
+                <div class="col-auto">
+                  <i class="fa-solid fa-arrow-right text-muted small"></i>
+                </div>
+                <div class="col">
+                  <div class="text-muted mb-1" style="font-size: 0.75rem;">Max Entered</div>
+                  <div class="fw-bold text-white">₹{{ form_data.get('Max_Price', '-') }}</div>
+                </div>
+              </div>
+            </div>
+          {% elif error %}
+            <div class="alert alert-danger border-0 d-flex align-items-center gap-3 text-start bg-dark text-danger">
+              <i class="fa-solid fa-triangle-exclamation fs-4"></i>
+              <div>{{ error }}</div>
+            </div>
+          {% else %}
+            <div class="py-4">
+              <div class="d-inline-flex justify-content-center align-items-center mb-3 rounded-circle bg-dark text-primary" style="width: 80px; height: 80px;">
+                <i class="fa-solid fa-microchip fa-2xl"></i>
+              </div>
+              <h5 class="fw-bold text-white mb-2">Awaiting Input</h5>
+              <p class="text-muted small px-4">Configure parameters on the left and run model inference.</p>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Model Specifications Card -->
+      <div class="card">
+        <div class="card-header border-0 pb-0 pt-4 px-4">
+          <h5 class="mb-0 fw-bold text-white"><span class="me-2">🧪</span>Model Specifications</h5>
+        </div>
+        <div class="card-body p-3">
+          <table class="table mb-0">
+            <tbody>
+              <tr>
+                <td class="text-muted fw-medium py-3 ps-3 border-bottom">Active Architecture</td>
+                <td class="text-end py-3 pe-3 border-bottom"><span class="badge badge-status-deployed">{{ model_name }}</span></td>
+              </tr>
+              <tr>
+                <td class="text-muted fw-medium py-3 ps-3 border-bottom">R² Coefficient</td>
+                <td class="text-end fw-semibold text-white py-3 pe-3 border-bottom">{{ "%.4f"|format(summary.models[summary.best_model].R2) }}</td>
+              </tr>
+              <tr>
+                <td class="text-muted fw-medium py-3 ps-3 border-bottom">Root Mean Sq. Error</td>
+                <td class="text-end fw-semibold text-white py-3 pe-3 border-bottom">₹{{ "{:,.2f}".format(summary.models[summary.best_model].RMSE) }}</td>
+              </tr>
+              <tr>
+                <td class="text-muted fw-medium py-3 ps-3">Mean Abs. Error</td>
+                <td class="text-end fw-semibold text-white py-3 pe-3">₹{{ "{:,.2f}".format(summary.models[summary.best_model].MAE) }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dynamic Commodity Comparison Section -->
+  <div class="row">
+    <div class="col-12">
+      <div class="card border-0 shadow">
+        <div class="card-header border-0 bg-transparent pt-4 px-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+          <div>
+            <h4 class="mb-1 fw-bold text-white"><span class="me-2">📈</span>Live Commodity Prediction Comparison</h4>
+            <p class="text-muted small mb-0">Every commodity you predict will be automatically added below so you can compare predictions side-by-side.</p>
+          </div>
+          <div class="d-flex align-items-center gap-2">
+            <button class="btn btn-sm btn-outline-danger" id="btnClearCompare">
+              <i class="fa-solid fa-trash-can me-1"></i> Clear Comparison
+            </button>
+          </div>
+        </div>
+
+        <div class="card-body p-4">
+          <!-- Active Compared Commodities Pills -->
+          <div class="mb-3 d-flex flex-wrap align-items-center gap-2" id="activeCommodityPills">
+            <span class="text-muted small me-2">Comparing:</span>
+            <!-- Dynamically populated badges -->
+          </div>
+
+          <!-- Chart Area -->
+          <div class="position-relative p-2" style="min-height: 380px;">
+            <canvas id="commodityCompareChart" style="max-height: 420px;"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  var ctx = document.getElementById('commodityCompareChart').getContext('2d');
+  var compareChart = null;
+
+  // Manage comparison list in sessionStorage
+  var storageKey = 'agri_ml_compare_history';
+  
+  function getCompareList() {
+    try {
+      var saved = sessionStorage.getItem(storageKey);
+      return saved ? JSON.parse(saved) : [];
+    } catch(e) {
+      return [];
+    }
+  }
+
+  function setCompareList(list) {
+    sessionStorage.setItem(storageKey, JSON.stringify(list));
+  }
+
+  // Check if user just submitted a prediction
+  {% if form_data.get('Commodity') %}
+    var currentPredComm = "{{ form_data.get('Commodity') }}";
+    var list = getCompareList();
+    if (!list.includes(currentPredComm)) {
+      list.push(currentPredComm);
+      setCompareList(list);
+    }
+  {% endif %}
+
+  // Render Pills
+  function renderPills(list) {
+    var container = document.getElementById('activeCommodityPills');
+    if (list.length === 0) {
+      container.innerHTML = '<span class="text-muted small fst-italic">No predictions made yet. Predict a commodity above to see it here!</span>';
+      return;
+    }
+    var html = '<span class="text-muted small me-1 fw-semibold">Compared Items (' + list.length + '):</span>';
+    list.forEach(function(item, index) {
+      html += '<span class="badge bg-primary bg-opacity-20 text-white border border-primary px-3 py-2 d-inline-flex align-items-center gap-2" style="font-size: 0.85rem;">' +
+              item +
+              '<i class="fa-solid fa-xmark remove-comm-btn text-muted" style="cursor:pointer;" data-index="' + index + '"></i>' +
+              '</span>';
+    });
+    container.innerHTML = html;
+
+    // Attach click listeners to remove individual item
+    document.querySelectorAll('.remove-comm-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var idx = parseInt(this.getAttribute('data-index'));
+        var currentList = getCompareList();
+        currentList.splice(idx, 1);
+        setCompareList(currentList);
+        fetchAndRenderComparison();
+      });
+    });
+  }
+
+  function fetchAndRenderComparison() {
+    var selectedComms = getCompareList();
+
+    // Default fallback if history is empty on first load
+    if (selectedComms.length === 0) {
+      var currentSelectVal = document.getElementById('inputCommodity').value || 'Wheat';
+      selectedComms = [currentSelectVal];
+    }
+
+    renderPills(getCompareList());
+
+    var state = document.getElementById('inputState').value;
+    var minPrice = document.getElementById('inputMinPrice').value;
+    var maxPrice = document.getElementById('inputMaxPrice').value;
+    var month = document.getElementById('inputMonth').value;
+    var year = document.getElementById('inputYear').value;
+    var dayOfWeek = document.getElementById('inputDayOfWeek').value;
+
+    fetch('/api/compare', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        commodities: selectedComms,
+        State: state,
+        Min_Price: minPrice,
+        Max_Price: maxPrice,
+        Month: month,
+        Year: year,
+        DayOfWeek: dayOfWeek
+      })
+    })
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+      if (data.status === 'ok') {
+        renderChart(data.comparison);
+      }
+    })
+    .catch(function(err) {
+      console.error('Error fetching comparison:', err);
+    });
+  }
+
+  function renderChart(items) {
+    var labels = items.map(function(d) { return d.commodity; });
+    var predictedPrices = items.map(function(d) { return d.predicted_price; });
+    var avgModalPrices = items.map(function(d) { return d.avg_modal_price; });
+    var avgMinPrices = items.map(function(d) { return d.avg_min_price; });
+
+    if (compareChart) {
+      compareChart.destroy();
+    }
+
+    var datasets = [
+      {
+        label: 'Predicted Modal Price (₹)',
+        data: predictedPrices,
+        backgroundColor: 'rgba(99, 102, 241, 0.2)',
+        borderColor: '#6366f1',
+        borderWidth: 3,
+        tension: 0.35,
+        fill: true,
+        pointRadius: 6,
+        pointHoverRadius: 9,
+        pointBackgroundColor: '#6366f1'
+      },
+      {
+        label: 'Historical Avg Modal Price (₹)',
+        data: avgModalPrices,
+        backgroundColor: 'rgba(16, 185, 129, 0.15)',
+        borderColor: '#10b981',
+        borderWidth: 3,
+        tension: 0.35,
+        fill: false,
+        pointRadius: 6,
+        pointHoverRadius: 9,
+        pointBackgroundColor: '#10b981'
+      },
+      {
+        label: 'Historical Avg Min Price (₹)',
+        data: avgMinPrices,
+        backgroundColor: 'rgba(245, 158, 11, 0.15)',
+        borderColor: '#f59e0b',
+        borderWidth: 2,
+        borderDash: [5, 5],
+        tension: 0.35,
+        fill: false,
+        pointRadius: 5,
+        pointHoverRadius: 8,
+        pointBackgroundColor: '#f59e0b'
+      }
+    ];
+
+    compareChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: datasets
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            labels: { color: '#f8fafc', font: { family: 'Inter', size: 12 } }
+          },
+          tooltip: {
+            backgroundColor: '#1e293b',
+            titleColor: '#f8fafc',
+            bodyColor: '#cbd5e1',
+            borderColor: '#334155',
+            borderWidth: 1,
+            callbacks: {
+              label: function(context) {
+                return context.dataset.label + ': ₹' + context.raw.toLocaleString();
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            ticks: { color: '#cbd5e1', font: { family: 'Inter' } },
+            grid: { color: '#232a3b' }
+          },
+          y: {
+            ticks: {
+              color: '#cbd5e1',
+              font: { family: 'Inter' },
+              callback: function(val) { return '₹' + val; }
+            },
+            grid: { color: '#232a3b' }
+          }
+        }
+      }
+    });
+  }
+
+  // Clear button
+  document.getElementById('btnClearCompare').addEventListener('click', function() {
+    sessionStorage.removeItem(storageKey);
+    fetchAndRenderComparison();
+  });
+
+  // Initial load
+  fetchAndRenderComparison();
+});
+</script>
+{% endblock %}
