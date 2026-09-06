@@ -15,7 +15,7 @@ An advanced Machine Learning Web Application for predicting, analyzing, and comp
 > [!IMPORTANT]
 > **Live Demo Link**: Replace `YOUR_DEPLOYMENT_URL_HERE` below with your live website link once deployed (e.g. Render / Railway / Vercel):
 >
-> 🚀 **[Click Here to Open Live Application](YOUR_DEPLOYMENT_URL_HERE)**  
+> 🚀 **[Click Here to Open Live Application](https://commodityml.vercel.app)**  
 > `URL Placeholder: https://commodity-price-prediction.onrender.com`
 
 ---
